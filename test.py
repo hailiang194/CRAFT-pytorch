@@ -160,12 +160,16 @@ if __name__ == '__main__':
         image = imgproc.loadImage(image_path)
 
         bboxes, polys, score_text = test_net(net, image, args.text_threshold, args.link_threshold, args.low_text, args.cuda, args.poly, refine_net)
-
+        filtered_polys = []
+        for poly in polys:
+            # max_locs = np.max(poly, 0)
+            if poly[0, 1] >= image.shape[0] // 2 and poly[0, 1] <  2 * image.shape[0] // 3 and cv2.contourArea(poly) >= 100:
+                filtered_polys.append(poly)
         # save score text
         filename, file_ext = os.path.splitext(os.path.basename(image_path))
         mask_file = result_folder + "/res_" + filename + '_mask.jpg'
         cv2.imwrite(mask_file, score_text)
 
-        file_utils.saveResult(image_path, image[:,:,::-1], polys, dirname=result_folder)
+        file_utils.saveResult(image_path, image[:,:,::-1], filtered_polys, dirname=result_folder)
 
     print("elapsed time : {}s".format(time.time() - t))
